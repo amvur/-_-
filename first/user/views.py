@@ -1,12 +1,12 @@
 import logging
 
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, logout
 from rest_framework.permissions import AllowAny
 from .models import CustomUser, UserProfile
 from .seralizers import CustomUserSerializer, UserSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, generics, permissions
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 
@@ -81,4 +81,10 @@ class CustomAuthToken(ObtainAuthToken):
             'token': token.key,
             'user': CustomUserSerializer(user).data
         })
+class LogoutView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
 
+    def post(self, request):
+        request.user.auth_token.delete()
+        logout(request)
+        return Response(status=204)
