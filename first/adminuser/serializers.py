@@ -1,6 +1,8 @@
 from django.template.context_processors import request
 from rest_framework import serializers
-from .models import CashReceiptOrder, Category, Products, Type, Order, OrderItem, PaymentOrder
+from .models import CashReceiptOrder, Category, Products, Type, Order, OrderItem, PaymentOrder, CashExpenseOrder, ExpenseOrderAttachment
+
+from django.contrib.auth import get_user_model
 
 
 class TypeSerializers(serializers.ModelSerializer):
@@ -120,3 +122,61 @@ class OrderSerializers(serializers.ModelSerializer):
 
 
 
+
+
+User = get_user_model()
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'first_name', 'last_name', 'email']
+
+class ExpenseOrderAttachmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExpenseOrderAttachment
+        fields = ['id', 'file', 'description', 'uploaded_at']
+        read_only_fields = ['uploaded_at']
+
+class CashExpenseOrderSerializer(serializers.ModelSerializer):
+    created_by = UserSerializer(read_only=True)
+    approved_by = UserSerializer(read_only=True)
+    cashier = UserSerializer(read_only=True)
+    attachments = ExpenseOrderAttachmentSerializer(many=True, read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+
+    class Meta:
+        model = CashExpenseOrder
+        fields = [
+            'id', 'number', 'created_at', 'updated_at', 'expense_date',
+            'amount', 'currency', 'recipient', 'basis', 'comment',
+            'status', 'status_display', 'created_by', 'approved_by',
+            'cashier', 'attachments'
+        ]
+        read_only_fields = [
+            'id', 'number', 'created_at', 'updated_at', 'created_by',
+            'approved_by', 'status_display'
+        ]
+
+class CashExpenseOrderCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CashExpenseOrder
+        fields = [
+            'expense_date', 'amount', 'currency', 'recipient',
+            'basis', 'comment'
+        ]
+
+class CashExpenseOrderUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CashExpenseOrder
+        fields = [
+            'expense_date', 'amount', 'currency', 'recipient',
+            'basis', 'comment', 'cashier'
+        ]
+        extra_kwargs = {
+            'cashier': {'required': False}
+        }
+
+class CashExpenseOrderStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CashExpenseOrder
+        fields = ['status']

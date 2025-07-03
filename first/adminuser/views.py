@@ -3,6 +3,23 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import viewsets, mixins, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from .models import CashExpenseOrder, ExpenseOrderAttachment
+from .serializers import (
+    CashExpenseOrderSerializer,
+    CashExpenseOrderCreateSerializer,
+    CashExpenseOrderUpdateSerializer,
+    CashExpenseOrderStatusSerializer,
+    ExpenseOrderAttachmentSerializer
+)
+from .permissions import (
+    IsCreatorOrReadOnly,
+    IsApprover,
+    IsCashier
+)
 
 from .models import (
     Category, Type, Products, Order, OrderItem, PaymentOrder, CashReceiptOrder,
@@ -96,3 +113,76 @@ class OrderViewSet(viewsets.ModelViewSet):
             },
             status=status.HTTP_200_OK
         )
+
+
+
+class CashExpenseOrderViewSet(viewsets.ModelViewSet):
+    queryset = CashExpenseOrder.objects.all()
+    permission_classes = [IsAuthenticated, IsCreatorOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return CashExpenseOrderCreateSerializer
+        elif self.action in ['update', 'partial_update']:
+            return CashExpenseOrderUpdateSerializer
+        return CashExpenseOrderSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsApprover])
+    def approve(self, request, pk=None):
+        order = self.get_object()
+        serializer = CashExpenseOrderStatusSerializer(
+            order,
+            data={'status': 'approved'},
+            partial=True
+        )
+        if serializer.is_valid():
+            serializer.save(approved_by=request.user)
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsApprover])
+    def reject(self, request, pk=None):
+        order = self.get_object()
+        serializer = CashExpenseOrderStatusSerializer(
+            order,
+            data={'status': 'rejected'},
+            partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsCashier])
+    def mark_as_paid(self, request, pk=None):
+        order = self.get_object()
+        serializer = CashExpenseOrderStatusSerializer(
+            order,
+            data={'status': 'paid'},
+            partial=True
+        )
+        if serializer.is_valid():
+            serializer.save(cashier=request.user)
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ExpenseOrderAttachmentViewSet(
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet
+):
+    serializer_class = ExpenseOrderAttachmentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return ExpenseOrderAttachment.objects.filter(
+            order_id=self.kwargs['order_pk']
+        )
+
+    def perform_create(self, serializer):
+        order = CashExpenseOrder.objects.get(pk=self.kwargs['order_pk'])
+        serializer.save(order=order)

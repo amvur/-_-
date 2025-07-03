@@ -2,6 +2,9 @@ from django.db import models, transaction
 from django.db.models import Sum
 from user.models import CustomUser
 
+from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator
+
 
 
 
@@ -237,3 +240,86 @@ class PaymentOrder(models.Model):
     class Meta:
         verbose_name = "Платежное поручение"
         verbose_name_plural = "Платежные поручении"
+
+
+
+
+User = get_user_model()
+
+class CashExpenseOrder(models.Model):
+    """Модель расходного кассового ордера"""
+    class Status(models.TextChoices):
+        DRAFT = 'draft', 'Черновик'
+        PENDING = 'pending', 'На согласовании'
+        APPROVED = 'approved', 'Утвержден'
+        REJECTED = 'rejected', 'Отклонен'
+        PAID = 'paid', 'Оплачен'
+
+    number = models.CharField('Номер', max_length=50, unique=True)
+    created_at = models.DateTimeField('Дата создания', auto_now_add=True)
+    updated_at = models.DateTimeField('Дата обновления', auto_now=True)
+    expense_date = models.DateField('Дата расхода')
+    amount = models.DecimalField(
+        'Сумма',
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(0.01)]
+    )
+    currency = models.CharField('Валюта', max_length=3, default='RUB')
+    recipient = models.CharField('Получатель', max_length=255)
+    basis = models.TextField('Основание')
+    comment = models.TextField('Комментарий', blank=True)
+    status = models.CharField(
+        'Статус',
+        max_length=20,
+        choices=Status.choices,
+        default=Status.DRAFT
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name='created_expense_orders',
+        verbose_name='Создатель'
+    )
+    approved_by = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name='approved_expense_orders',
+        verbose_name='Утвердил',
+        null=True,
+        blank=True
+    )
+    cashier = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name='cashier_expense_orders',
+        verbose_name='Кассир',
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        verbose_name = 'Расходный кассовый ордер'
+        verbose_name_plural = 'Расходные кассовые ордера'
+        ordering = ['-expense_date', '-created_at']
+
+    def __str__(self):
+        return f'РКО №{self.number} от {self.expense_date}'
+
+class ExpenseOrderAttachment(models.Model):
+    """Прикрепленные документы к РКО"""
+    order = models.ForeignKey(
+        CashExpenseOrder,
+        on_delete=models.CASCADE,
+        related_name='attachments'
+    )
+    file = models.FileField('Файл', upload_to='expense_orders/attachments/')
+    description = models.CharField('Описание', max_length=255, blank=True)
+    uploaded_at = models.DateTimeField('Дата загрузки', auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Приложение к РКО'
+        verbose_name_plural = 'Приложения к РКО'
+
+    def __str__(self):
+        return f'Приложение к РКО №{self.order.number}'
