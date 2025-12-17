@@ -5,12 +5,12 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Sum
-from .models import Category, Type, Products, Order, OrderItem, PaymentOrder, CashReceiptOrder
+from .models import Category, Type, Products, Order, OrderItem, PaymentOrder, CashReceiptOrder, DisbursementCashOrder
 from .serializers import (
     CategorySerializer, TypeSerializer, ProductsSerializer,
     OrderSerializer, OrderItemSerializer,
     PaymentOrderSerializer, CashReceiptOrderSerializer,
-    CategoryListSerializer, TypeListSerializer, ProductsListSerializer, OrderListSerializer
+    CategoryListSerializer, TypeListSerializer, ProductsListSerializer, OrderListSerializer, DisbursementCashOrderSerializer
 )
 
 
@@ -115,6 +115,13 @@ class CashReceiptOrderViewSet(UserObjectsOnlyViewSetMixin, viewsets.ModelViewSet
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+
+class DisbursementCashOrderViewSet(UserObjectsOnlyViewSetMixin, viewsets.ModelViewSet):
+    queryset = DisbursementCashOrder.objests.all()
+    serializer_class = DisbursementCashOrderSerializer
+    permission_classes = [permissions.IsAuthenticated, UserObjectsOnlyPermission]
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 class PaymentOrderViewSet(UserObjectsOnlyViewSetMixin, viewsets.ModelViewSet):
     queryset = PaymentOrder.objects.all()

@@ -11,6 +11,7 @@ router.register(r'order-items', views.OrderItemViewSet)
 router.register(r'cash-receipts', views.CashReceiptOrderViewSet)
 router.register(r'payment-orders', views.PaymentOrderViewSet)
 router.register(r'dashboard', views.DashboardViewSet, basename='dashboard')
+router.register(r'rco', views.DisbursementCashOrderViewSet)
 
 urlpatterns = [
     path('api/', include(router.urls)),
