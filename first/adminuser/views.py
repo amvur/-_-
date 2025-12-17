@@ -58,7 +58,7 @@ class ProductsViewSet(UserObjectsOnlyViewSetMixin, viewsets.ModelViewSet):
     queryset = Products.objects.all()
     permission_classes = [permissions.IsAuthenticated, UserObjectsOnlyPermission]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['category', 'type', 'is_available']
+    filterset_fields = ['category', 'type']
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -149,3 +149,4 @@ class DashboardViewSet(viewsets.ViewSet):
             }
         )
 # test commit
+

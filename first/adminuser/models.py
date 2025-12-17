@@ -260,7 +260,7 @@ class PaymentOrder(models.Model):
 class DisbursementCashOrder(models.Model):
     number_order = models.CharField(max_length=50, unique=True, verbose_name="Номер ордера")
     date = models.DateTimeField(auto_created=True, verbose_name='Дата')
-    sum_ = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Сумма', editable=False)
+    sum_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Сумма', editable=False)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
 
 
