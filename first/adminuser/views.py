@@ -117,7 +117,7 @@ class CashReceiptOrderViewSet(UserObjectsOnlyViewSetMixin, viewsets.ModelViewSet
 
 
 class DisbursementCashOrderViewSet(UserObjectsOnlyViewSetMixin, viewsets.ModelViewSet):
-    queryset = DisbursementCashOrder.objests.all()
+    queryset = DisbursementCashOrder.objects.all()
     serializer_class = DisbursementCashOrderSerializer
     permission_classes = [permissions.IsAuthenticated, UserObjectsOnlyPermission]
     def perform_create(self, serializer):
