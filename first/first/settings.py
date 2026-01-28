@@ -38,6 +38,8 @@ ALLOWED_HOSTS = [
     '192.168.0.105',
     '192.168.0.133',
     '192.168.0.126',
+    '192.168.0.116',
+    '192.168.0.120',
     '192.168.0.171',# Замените на IP вашего компьютера в сети
 ]
 
@@ -48,6 +50,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://192.168.0.195:4200",
     "http://192.168.0.126:4200",
     "http://192.168.0.105:4200",
+    "http://192.168.0.120:4200",
     "http://192.168.0.145:8000",
     "http://192.168.0.133:8000",
     "http://192.168.0.105:8000", ]
@@ -70,7 +73,7 @@ INSTALLED_APPS = [
     'adminuser.apps.AdminuserConfig',
     'corsheaders',
 ]
-LOGIN_REDIRECT_URL = '/api/users/me'
+LOGIN_REDIRECT_URL = '/api/auth/orders'
 MIDDLEWARE = [
 
     'corsheaders.middleware.CorsMiddleware',

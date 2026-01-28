@@ -16,7 +16,6 @@ from .serializers import (
 
 class UserObjectsOnlyPermission(permissions.BasePermission):
     """Разрешить только на свои объекты"""
-
     def has_object_permission(self, request, view, obj):
         return obj.user == request.user
 
@@ -55,8 +54,8 @@ class TypeViewSet(UserObjectsOnlyViewSetMixin, viewsets.ModelViewSet):
 
 
 class ProductsViewSet(UserObjectsOnlyViewSetMixin, viewsets.ModelViewSet):
-    queryset = Products.objects.all()
     permission_classes = [permissions.IsAuthenticated, UserObjectsOnlyPermission]
+    queryset = Products.objects.all()
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['category', 'type']
 

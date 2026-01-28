@@ -15,5 +15,6 @@ router.register(r'rco', views.DisbursementCashOrderViewSet)
 
 urlpatterns = [
     path('api/', include(router.urls)),
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework_auth')),]
+    path('api/auth/', include('rest_framework.urls', namespace='rest_framework_auth')),
+]
 

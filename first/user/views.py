@@ -52,14 +52,21 @@ class LogoutView(APIView):
 
 
 class RegisterView(APIView):
-    permission_classes = [AllowAny]
+    http_method_names = ['post']
+    permission_classes = [permissions.AllowAny]
     serializer_class = UserCreateSerializer
+
+    def get(self, request):
+        # Возвращаем информацию о том, какие поля нужны для регистрации
+        # Это можно сделать, вернув описание полей из сериализатора
+        serializer = self.serializer_class()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
         try:
             serializer = self.serializer_class(data=request.data)
             serializer.is_valid(raise_exception=True)
-            user = serializer.save()
+            serializer.save()
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -73,4 +80,7 @@ class RegisterView(APIView):
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+
 

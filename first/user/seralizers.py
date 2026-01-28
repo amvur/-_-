@@ -55,6 +55,8 @@ class UserCreateSerializer(serializers.Serializer):
     """
     Сериализатор только для регистрации.
     """
+    username = serializers.CharField(required=False)
+
     email = serializers.EmailField(required=True)
     password = serializers.CharField(
         write_only=True,
@@ -74,7 +76,6 @@ class UserCreateSerializer(serializers.Serializer):
     # inn = serializers.CharField(required=False)
     # kPP = serializers.CharField(required=False)
     # Address = serializers.CharField(required=False)
-    director = serializers.CharField(required=False)
     # tokens = serializers.SerializerMethodField(read_only=False)
 
     def validate(self, attrs):
